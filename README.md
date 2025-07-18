@@ -2,10 +2,6 @@
 
 **A web-based educational tool to visualize and interact with core data structures in real-time using only HTML, CSS, and JavaScript.**
 
-> 📷 _Note: Replace the placeholder below with a real screenshot of your finished project!_
-
-![Screenshot of the project](screenshot.png)
-
 ---
 
 ## 🚀 Overview
