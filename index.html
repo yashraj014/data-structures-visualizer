@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Data Structure Visualizer</title>
+</head>
+
+<body class="bg-gray-900 text-gray-300 flex flex-col items-center">
+    <header>
+        <h1 class="text-4xl text-center font-bold my-6">Data Structure Visualizer</h1>
+    </header>
+    <nav class="flex justify-center gap-4 mb-6">
+        <button class="bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg">Array</button>
+        <button class="bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg">Stack</button>
+        <button class="bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg">Queue</button>
+        <button class="bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg">Linked List</button>
+        <button class="bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg">Binary Search Tree</button>
+    </nav>
+    <main>
+        <div id="controls">
+            <p>Select a data structure to begin.</p>
+        </div>
+        <div id="visualization-area"></div>
+    </main>
+    <script>
+        const visualizationArea = document.getElementById("visualization-area");
+        function createLine(el1, el2) {
+            const line = document.createElement('div');
+            line.className = 'absolute h-0.5 bg-cyan-400 z-[-1]'; // Added z-index to put it behind nodes
+
+            const rect1 = el1.getBoundingClientRect();
+            const rect2 = el2.getBoundingClientRect();
+            const areaRect = visualizationArea.getBoundingClientRect();
+
+            const x1 = rect1.left + rect1.width / 2 - areaRect.left;
+            const y1 = rect1.top + rect1.height / 2 - areaRect.top;
+            const x2 = rect2.left + rect2.width / 2 - areaRect.left;
+            const y2 = rect2.top + rect2.height / 2 - areaRect.top;
+
+            const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+            const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+
+            line.style.width = `${length}px`;
+            line.style.top = `${y1}px`;
+            line.style.left = `${x1}px`;
+            line.style.transform = `rotate(${angle}deg)`;
+            line.style.transformOrigin = '0 0';
+
+            visualizationArea.appendChild(line);
+        }
+        function draw() {
+
+            visualizationArea.innerHTML = "";
+            let layoutClasses = 'w-full p-4 rounded-xl relative flex justify-center items-center gap-4 flex-wrap';
+            if (currentDS instanceof Stack) {
+                layoutClasses = 'w-full p-4 rounded-xl relative flex flex-col-reverse items-center gap-2';
+            }
+            visualizationArea.className = layoutClasses;
+            if (currentDS instanceof LinkedList) {
+                let nodeElements= [];
+                let current = currentDS.head;
+                while (current != null) {
+                    const node = document.createElement("div");
+                    node.textContent = current.value;
+                    node.className = "bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg";
+                    visualizationArea.appendChild(node);
+                    nodeElements.push(node);
+                    current = current.next;
+                }
+                const nullNode = document.createElement("div");
+                nullNode.textContent = "null";
+                nullNode.className = "bg-gray-700 text-gray-400 font-mono py-2 px-4 rounded-lg border-2 border-dashed border-gray-500";
+                visualizationArea.appendChild(nullNode);
+                nodeElements.push(nullNode);
+
+                setTimeout(()=>{
+                    for(let i=0;i<nodeElements.length-1;i++){
+                        const startNode= nodeElements[i];
+                        const endNode= nodeElements[i+1];
+                        createLine(startNode,endNode);
+                    }
+                },0);
+            }
+            else if (currentDS && currentDS.data) {
+                currentDS.data.forEach(item => {
+                    const node = document.createElement("div");
+                    node.textContent = item;
+                    node.className = "bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg";
+                    visualizationArea.append(node);
+                });
+            }
+
+        }
+        let currentDS = null;
+        class ArrayDS {
+            constructor() {
+                this.data = [];
+            }
+            add(value) {
+                this.data.push(value);
+            }
+            remove(index) {
+                this.data.splice(index, 1);
+            }
+        }
+        class Stack {
+            constructor() {
+                this.data = [];
+            }
+            push(value) {
+                this.data.push(value);
+            }
+            pop() {
+                return this.data.pop();
+            }
+        }
+        class Queue {
+            constructor() {
+                this.data = [];
+            }
+            enqueue(value) {
+                this.data.push(value);
+            }
+            dequeue() {
+                return this.data.shift();
+            }
+
+        }
+        class LinkedListNode {
+            constructor(value) {
+                this.value = value;
+                this.next = null;
+
+            }
+        }
+        class LinkedList {
+            constructor() {
+                this.head = null;
+            }
+            append(value) {
+                const newNode = new LinkedListNode(value);
+                if (!this.head) {
+                    this.head = newNode;
+                }
+                else {
+                    let current = this.head;
+                    while (current.next !== null) {
+                        current = current.next;
+                    }
+                    current.next = newNode;
+                }
+
+            }
+        }
+        const dsSelector = document.querySelector("nav");
+        const controlsArea = document.getElementById("controls");
+        dsSelector.addEventListener("click", (event) => {
+            if (event.target.tagName === "BUTTON") {
+                console.log(event.target.textContent);
+                // controlsArea.innerHTML= `You selected: ${event.target.textContent}`;
+                switch (event.target.textContent) {
+                    case "Array":
+                        {
+                            currentDS = new ArrayDS();
+                            controlsArea.innerHTML = `<input type="text" id="arr-value">
+                        <button id="arr-add-btn">Add</button>
+                        <input type="text" id="arr-index">
+                        <button id="arr-remove-btn">Remove by Index</button>`
+                            document.getElementById("arr-add-btn").addEventListener("click", () => {
+                                let value = document.getElementById("arr-value").value;
+                                currentDS.add(value);
+                                draw();
+                            })
+                            break;
+                        }
+                    case "Stack": {
+                        currentDS = new Stack();
+                        controlsArea.innerHTML = `<input type="text" id="stack-value">
+                        <button id="stack-push-btn">Push</button>
+                        <button id="stack-pop-btn">Pop</button>`
+                        document.getElementById("stack-push-btn").addEventListener("click", () => {
+                            let value = document.getElementById("stack-value").value;
+                            currentDS.push(value);
+                            draw();
+                        });
+                        document.getElementById("stack-pop-btn").addEventListener("click", () => {
+                            currentDS.pop();
+                            draw();
+                        });
+                        break;
+                    }
+                    case "Queue": {
+                        currentDS = new Queue();
+                        controlsArea.innerHTML = `<input type="text" id="queue-value">
+                        <button id="queue-enqueue-btn">Enqueue</button>
+            
+                        <button id="queue-dequeue-btn">Dequeue</button>`
+                        document.getElementById("queue-enqueue-btn").addEventListener("click", () => {
+                            let value = document.getElementById("queue-value").value;
+                            currentDS.enqueue(value);
+                            draw();
+                        });
+                        document.getElementById("queue-dequeue-btn").addEventListener("click", () => {
+                            currentDS.dequeue();
+                            draw();
+                        });
+                        break;
+                    }
+                    case "Linked List":
+                        {
+                            currentDS = new LinkedList();
+                            controlsArea.innerHTML = `<input type="text" id="ll-value">
+                        <button id="ll-append-btn">Append</button>`
+                            document.getElementById("ll-append-btn").addEventListener("click", () => {
+                                let value = document.getElementById("ll-value").value;
+                                currentDS.append(value);
+                                draw();
+                            });
+                            break;
+                        }
+
+                }
+                console.log(currentDS);
+                draw();
+            }
+        });
+
+    </script>
+</body>
+
+</html>
